@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QMainWindow
 from PySide6.QtGui import QAction
 import numpy as np
+from matplotlib.widgets import RectangleSelector
 
 from qtdesigner.mainui.UI_nemo_main_window import Ui_NemoMainWindow
 from qtdesigner.dialogs.moddialogimportnmoperiodicampsmat import DialogImportNMOPeriodicMat
@@ -9,6 +10,8 @@ from functions.modloadnmoperiodicampsfrommatfile import load_nmo_periodic_amps_f
 from functions.modextracttkcontributions import extract_tk_contributions
 from functions.modcomputethyp import compute_t_hyp_us
 from classdefs.modboundaryline import BoundaryLine
+from classdefs.modtkzoomwidget import TKZoomWidget
+from qtdesigner.dialogs.PrettyPrint.moddialogprettyprint import DialogPrettyPrint
 
 
 class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
@@ -18,8 +21,8 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.setupUi(self)
 
         # Instance variables:
-        self.b_scan_amplitudes_raw = None
-        self.b_scan_amps_modified = None
+        self.b_scan_amplitudes_raw_mv = None
+        self.b_scan_amps_modified_mv = None
         self.t_min_us_scope = None
         self.t_max_us_scope = None
         self.pitch_mm = None
@@ -36,6 +39,8 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.boundary_i_min = 0
         self.boundary_line_x_max = None
         self.boundary_i_max = None
+        self.rect_selector_tk = None
+        self.tk_zoom_widget = None
 
         # Set window title:
         self.setWindowTitle('Nemo')
@@ -72,6 +77,8 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.spinBox_tk_n_t0s.editingFinished.connect(self.t_0_vector_changed)
         self.doubleSpinBox_rise_time_us.editingFinished.connect(self.rise_time_changed)
         self.checkBox_x_max.checkStateChanged.connect(self.checkbox_x_max_toggled)
+        self.pushButton_box_select.clicked.connect(self.tk_box_select_button_clicked)
+        self.pushButton_print_tk.clicked.connect(self.print_tk_clicked)
         # Matplotlib signals:
         self.tk_spectrum_widget.mpl_canvas.fig.canvas.mpl_connect('motion_notify_event', self.tk_hover)
 
@@ -83,10 +90,10 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         if provided:
             # The user has provided file import parameters and wishes to continue with the data import:
             # Import the amplitude data array:
-            self.b_scan_amplitudes_raw = load_nmo_periodic_amps_from_mat_file(file_path)
+            self.b_scan_amplitudes_raw_mv = load_nmo_periodic_amps_from_mat_file(file_path) * 1000
 
             # Generate the time vector using the scope time limits provided:
-            self.n_samples, self.n_a_scans = np.shape(self.b_scan_amplitudes_raw)
+            self.n_samples, self.n_a_scans = np.shape(self.b_scan_amplitudes_raw_mv)
             self.t_vector_us = generate_time_vector_us(self.t_min_us_scope, self.t_max_us_scope, self.n_samples)
             # Generate x vector:
             self.x_max_mm = (self.n_a_scans - 1) * self.pitch_mm
@@ -96,11 +103,11 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
 
             # Update everything to reflect the new fmclp data set:
             # No modifiers applied yet:
-            self.b_scan_amps_modified = self.b_scan_amplitudes_raw
+            self.b_scan_amps_modified_mv = self.b_scan_amplitudes_raw_mv
             # Display the NMO B-scan:
-            self.nmo_b_scan_widget.new_amplitude_array(self.b_scan_amps_modified)
+            self.nmo_b_scan_widget.new_amplitude_array(self.b_scan_amps_modified_mv)
             # Set c lims for NMO B-scan plot:
-            self.nmo_b_scan_widget.axes_image.set_clim(vmin=-10 / 1000, vmax=10 / 1000)
+            self.nmo_b_scan_widget.axes_image.set_clim(vmin=-10, vmax=10)
             self.doubleSpinBox_nmo_c_min.setValue(-10)
             self.doubleSpinBox_nmo_c_max.setValue(10)
             # Set extent:
@@ -138,8 +145,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
             self.generate_v_vector_from_limits()
             self.generate_t_0_vector_from_limits()
             # Set v data for the iso-b line & text:
-            self.tk_spectrum_widget.line_iso_b.set_xdata(self.v_vector_mpers)
-            self.tk_spectrum_widget.text_iso_b.set_x(self.doubleSpinBox_tk_v_max.value())
+            self.tk_spectrum_widget.new_v_vector_mpers(self.v_vector_mpers)
 
             # Compute a default TK spectrum using the imported data:
             tk_spectrum_amps = self.compute_tk_from_vectors()
@@ -154,7 +160,6 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
 
             # Set v data for the iso-b line & text:
             self.tk_spectrum_widget.line_iso_b.set_xdata(self.v_vector_mpers)
-            self.tk_spectrum_widget.text_iso_b.set_x(self.doubleSpinBox_tk_v_max.value())
 
             # Draw T-K plot canvas:
             self.tk_spectrum_widget.mpl_canvas.draw()
@@ -213,12 +218,10 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.set_tk_extent_from_box_values()
         # Set v data for the iso-b line & text:
         self.tk_spectrum_widget.line_iso_b.set_xdata(self.v_vector_mpers)
-        self.tk_spectrum_widget.text_iso_b.set_x(self.doubleSpinBox_tk_v_max.value())
         # Clear t_0 data for iso-b line:
         self.tk_spectrum_widget.line_iso_b.set_ydata([])
-        # Make iso-b line and text invisible:
-        self.tk_spectrum_widget.line_iso_b.set_visible(False)
-        self.tk_spectrum_widget.text_iso_b.set_visible(False)
+        # Make TK hover annotations invisible:
+        self.tk_spectrum_widget.set_hover_annotations_visible(False)
         # Make mouse hover hyperbola invisible:
         self.nmo_b_scan_widget.hyperbola_hover.set_visible(False)
 
@@ -233,7 +236,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
 
     def extract_tk_contributions(self):
         self.spectrum_contributions_3d, self.query_times_by_a_scan_3d = extract_tk_contributions(
-            self.b_scan_amps_modified, self.t_vector_us, self.x_vector_mm, self.v_vector_mpers, self.t_0_vector_us)
+            self.b_scan_amps_modified_mv, self.t_vector_us, self.x_vector_mm, self.v_vector_mpers, self.t_0_vector_us)
 
     def mask_tk_contributions(self):
         if self.groupBox_box_mask.isChecked():
@@ -251,11 +254,11 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         return tk_spectrum_amps
 
     def nmo_c_min_changed(self, c_min_mv):
-        self.nmo_b_scan_widget.axes_image.set_clim(vmin=c_min_mv / 1000)
+        self.nmo_b_scan_widget.axes_image.set_clim(vmin=c_min_mv)
         self.nmo_b_scan_widget.mpl_canvas.draw()
 
     def nmo_c_max_changed(self, c_max_mv):
-        self.nmo_b_scan_widget.axes_image.set_clim(vmax=c_max_mv / 1000)
+        self.nmo_b_scan_widget.axes_image.set_clim(vmax=c_max_mv)
         self.nmo_b_scan_widget.mpl_canvas.draw()
 
     def tk_c_min_changed(self, c_min):
@@ -274,8 +277,15 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.nmo_b_scan_widget.mpl_canvas.ax.set_ylim(bottom=t_max_us)
         self.nmo_b_scan_widget.mpl_canvas.draw()
 
+    def update_nmo_b_scan_hyp_hover(self, v_hover_mpers, t_0_hover_us):
+        # Draw hyperbola for [v,b] point:
+        # Compute t values for this hyperbola:
+        t_hyp_us = compute_t_hyp_us(self.x_vector_mm, v_hover_mpers, t_0_hover_us)
+        # Set ydata for hyp line:
+        self.nmo_b_scan_widget.hyperbola_hover.set_ydata(t_hyp_us)
+
     def tk_hover(self, event):
-        if self.b_scan_amplitudes_raw is None:
+        if self.b_scan_amplitudes_raw_mv is None:
             # No dataset loaded.  Take no action.
             return
         elif not event.inaxes:
@@ -285,8 +295,8 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
             if hyp_hover_visible:
                 # Make invisible:
                 self.nmo_b_scan_widget.hyperbola_hover.set_visible(False)
-                self.tk_spectrum_widget.line_iso_b.set_visible(False)
-                self.tk_spectrum_widget.text_iso_b.set_visible(False)
+                self.tk_spectrum_widget.set_hover_annotations_visible(False)
+
                 # Blit to remove:
                 self.nmo_b_scan_widget.blit_manager.blit_all_animated_artists()
                 self.tk_spectrum_widget.blit_manager.blit_all_animated_artists()
@@ -297,31 +307,18 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
             # Mouse is in TK data axes.
             v_hover_mpers = event.xdata
             t_0_hover_us = event.ydata
-            # Draw hyperbola for hovered [v,b] point:
-            # Compute t values for this hyperbola:
-            t_hyp_us = compute_t_hyp_us(self.x_vector_mm, v_hover_mpers, t_0_hover_us)
-            # Set ydata for hyp line:
-            self.nmo_b_scan_widget.hyperbola_hover.set_ydata(t_hyp_us)
+            # Draw hyperbola on NMO B-scan for hovered [v,b] point:
+            self.update_nmo_b_scan_hyp_hover(v_hover_mpers, t_0_hover_us)
+
+            # Update hover annotations on TK plot:
+            self.tk_spectrum_widget.update_hover_annotations(v_hover_mpers, t_0_hover_us)
+
             # Check if hyp hover is visible:
             if not self.nmo_b_scan_widget.hyperbola_hover.get_visible():
                 # Hyp hover is invisible.
-                # Make visible:
+                # Make all hover annotations visible:
                 self.nmo_b_scan_widget.hyperbola_hover.set_visible(True)
-                self.tk_spectrum_widget.line_iso_b.set_visible(True)
-                self.tk_spectrum_widget.text_iso_b.set_visible(True)
-
-            # Draw iso-b line on TK spectrum:
-            # Compute b:
-            b_hover_mm = 10**3 * 0.5 * t_0_hover_us * 10**-6 * v_hover_mpers
-            # Compute t_0 values for this b value:
-            t_0s_iso_b_line_us = 10**6 * 2 * b_hover_mm * 10**-3 / self.v_vector_mpers
-            # Set ydata for iso-b line:
-            self.tk_spectrum_widget.line_iso_b.set_ydata(t_0s_iso_b_line_us)
-
-            # Update text label:
-            self.tk_spectrum_widget.text_iso_b.set_text(f'b={b_hover_mm:.2f}mm')
-            # Update text location:
-            self.tk_spectrum_widget.text_iso_b.set_y(t_0s_iso_b_line_us[-1])
+                self.tk_spectrum_widget.set_hover_annotations_visible(True)
 
             # Blit changes:
             self.nmo_b_scan_widget.blit_manager.blit_all_animated_artists()
@@ -360,8 +357,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         # Compute new v vector:
         self.generate_v_vector_from_limits()
         # Set v data for the iso-b line & text:
-        self.tk_spectrum_widget.line_iso_b.set_xdata(self.v_vector_mpers)
-        self.tk_spectrum_widget.text_iso_b.set_x(self.doubleSpinBox_tk_v_max.value())
+        self.tk_spectrum_widget.new_v_vector_mpers(self.v_vector_mpers)
         # Compute new T-K spectrum amplitudes:
         tk_spectrum_amps = self.compute_tk_from_vectors()
         # Display new spectrum array:
@@ -443,3 +439,66 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.tk_spectrum_widget.axes_image.set_data(tk_spectrum_amps)
         # Re-draw the TK spectrum plot:
         self.tk_spectrum_widget.mpl_canvas.draw()
+
+    def tk_rect_on_select(self, eclick, erelease):
+        # Use the rectangle corner coordinates to specify the axis ranges of the TKzoom widget:
+        v_click, t_0_click = eclick.xdata, eclick.ydata
+        v_release, t_0_release = erelease.xdata, erelease.ydata
+
+        # Find the min and max values of v and t_0:
+        v_min_mpers, v_max_mpers = tuple(sorted([v_click, v_release]))
+        t_0_min_mpers, t_0_max_mpers = tuple(sorted([t_0_click, t_0_release]))
+
+        # Is there a TKZoom widget open?
+        if not self.tk_zoom_widget:
+            # Instantiate a new TK zoom widget:
+            self.tk_zoom_widget = TKZoomWidget(self.b_scan_amps_modified_mv, self.x_vector_mm, self.t_vector_us)
+            self.tk_zoom_widget.tk_zoom_closed.connect(self.tk_zoom_widget_closed_slot)
+            self.tk_zoom_widget.tk_zoom_hyperbola_found.connect(self.tk_zoom_hyp_found)
+            self.tk_zoom_widget.show()
+
+        # Send data to the tk zoom widget:
+        self.tk_zoom_widget.new_limits_from_rectangle(v_min_mpers, v_max_mpers, t_0_min_mpers, t_0_max_mpers,
+                                                      self.boundary_i_min, self.boundary_i_max)
+
+        # Remove the RectangleSelector:
+        self.rect_selector_tk.disconnect_events()
+        self.rect_selector_tk = None
+
+        # Un-check the tool button:
+        self.pushButton_box_select.setChecked(False)
+
+    def tk_box_select_button_clicked(self, checked):
+        if checked:
+            # Instantiate a RectangleSelector on the TK canvas:
+            self.rect_selector_tk = RectangleSelector(self.tk_spectrum_widget.mpl_canvas.ax,
+                                                      onselect=self.tk_rect_on_select,
+                                                      interactive=False,
+                                                      useblit=True,
+                                                      button=[1, 3],  # disable middle button
+                                                      minspanx=5, minspany=5,
+                                                      spancoords='pixels')
+
+    def tk_zoom_widget_closed_slot(self):
+        # Set Python reference for tk_zoom widget to none:
+        self.tk_zoom_widget = None
+
+    def tk_zoom_hyp_found(self, v_t_0_tuple):
+        v_mpers, t_0_mpers = v_t_0_tuple
+        # Plot the hyperbola on the B-scan plot:
+        self.update_nmo_b_scan_hyp_hover(v_mpers, t_0_mpers)
+        # Update the TK plot hover annotations:
+        self.tk_spectrum_widget.update_hover_annotations(v_mpers, t_0_mpers)
+        # Blit changes:
+        self.nmo_b_scan_widget.blit_manager.blit_all_animated_artists()
+        self.tk_spectrum_widget.blit_manager.blit_all_animated_artists()
+
+    def print_tk_clicked(self):
+        # Instantiate the PrettyPrint class:
+        title_string = f'T-K plot: {self.label_data_set_name.text()}'
+        dialog_pretty_print = DialogPrettyPrint(self, self.tk_spectrum_widget.mpl_canvas.fig,
+                                                r'Wave speed $c$ ($\mathregular{ms^{-1}}$)',
+                                                y_label_string='$t_{0}$ (μs)',
+                                                colorbar_string='Sum (mV)',
+                                                title_string=title_string)
+        dialog_pretty_print.exec()

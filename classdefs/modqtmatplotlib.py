@@ -1,3 +1,4 @@
+import pickle
 import matplotlib
 
 matplotlib.use('Qt5Agg')
@@ -10,5 +11,14 @@ class MplCanvas(FigureCanvasQTAgg):
         self.fig = Figure(figsize=(width, height), dpi=dpi, layout="constrained")
         self.ax = self.fig.add_subplot(111)
         super(MplCanvas, self).__init__(self.fig)
+
+        self.setParent(parent)
+
+class MplCanvasCopycat(FigureCanvasQTAgg):
+    def __init__(self, parent=None, fig_to_copy=None):
+        self.fig = pickle.loads(pickle.dumps(fig_to_copy))
+        # Assuming only one axis in the figure:
+        self.ax = self.fig.axes[0]
+        super(MplCanvasCopycat, self).__init__(self.fig)
 
         self.setParent(parent)

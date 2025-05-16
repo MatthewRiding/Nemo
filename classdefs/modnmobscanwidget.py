@@ -1,5 +1,4 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QVBoxLayout
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QSizePolicy
 import colorcet as cc
 import numpy as np
 
@@ -17,26 +16,20 @@ class NMOBScanWidget(QWidget):
         self.mpl_canvas = MplCanvas(parent=self, width=4, height=2, dpi=100)
 
         # Create the interactive matplotlib toolbar, passing the MplCanvas as the first parameter, then the parent (
-        # self, the QWidget) as the second parameter:
-        toolbar = NavigationToolbar(self.mpl_canvas, self)
+        # # self, the QWidget) as the second parameter:
+        # toolbar = NavigationToolbar(self.mpl_canvas, self)
 
-        # Add the toolbar to a horizontal layout with a label to describe the plot:
-        layout_title_and_tools = QHBoxLayout()
-        layout_title_and_tools.setContentsMargins(0, 0, 0, 0)
+        # Add a label for the title:
         self.label_title = QLabel('  NMO B-scan  ')
         self.label_title.setStyleSheet("font: 14pt Segoe UI")
-        v_line = QFrame()
-        v_line.setFrameShape(QFrame.Shape.VLine)
-        v_line.setFrameShadow(QFrame.Shadow.Sunken)
-        layout_title_and_tools.addWidget(self.label_title)
-        layout_title_and_tools.addWidget(v_line)
-        layout_title_and_tools.addWidget(toolbar)
+        self.label_title.setSizePolicy(QSizePolicy.Policy.Expanding,
+                                       QSizePolicy.Policy.Maximum)
 
-        # Stack the h layout and the MplCanvas into a vertical layout:
+        # Stack the title label and the MplCanvas into a vertical layout:
         layout = QVBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(layout_title_and_tools)
+        layout.addWidget(self.label_title)
         layout.addWidget(self.mpl_canvas)
         self.setLayout(layout)
 

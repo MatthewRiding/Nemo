@@ -29,7 +29,7 @@ class Ui_NemoMainWindow(object):
     def setupUi(self, NemoMainWindow):
         if not NemoMainWindow.objectName():
             NemoMainWindow.setObjectName(u"NemoMainWindow")
-        NemoMainWindow.resize(1398, 838)
+        NemoMainWindow.resize(1168, 838)
         self.centralwidget = QWidget(NemoMainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout_2 = QVBoxLayout(self.centralwidget)
@@ -123,7 +123,7 @@ class Ui_NemoMainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAreaWidgetContents_2 = QWidget()
         self.scrollAreaWidgetContents_2.setObjectName(u"scrollAreaWidgetContents_2")
-        self.scrollAreaWidgetContents_2.setGeometry(QRect(0, 0, 509, 178))
+        self.scrollAreaWidgetContents_2.setGeometry(QRect(0, 0, 394, 174))
         self.verticalLayout_7 = QVBoxLayout(self.scrollAreaWidgetContents_2)
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.label_21 = QLabel(self.scrollAreaWidgetContents_2)
@@ -255,7 +255,7 @@ class Ui_NemoMainWindow(object):
         self.scrollArea_5.setWidgetResizable(True)
         self.scrollAreaWidgetContents_5 = QWidget()
         self.scrollAreaWidgetContents_5.setObjectName(u"scrollAreaWidgetContents_5")
-        self.scrollAreaWidgetContents_5.setGeometry(QRect(0, 0, 526, 151))
+        self.scrollAreaWidgetContents_5.setGeometry(QRect(0, 0, 411, 151))
         self.verticalLayout_5 = QVBoxLayout(self.scrollAreaWidgetContents_5)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.label_23 = QLabel(self.scrollAreaWidgetContents_5)
@@ -316,7 +316,7 @@ class Ui_NemoMainWindow(object):
         self.scrollArea_6.setWidgetResizable(True)
         self.scrollAreaWidgetContents_6 = QWidget()
         self.scrollAreaWidgetContents_6.setObjectName(u"scrollAreaWidgetContents_6")
-        self.scrollAreaWidgetContents_6.setGeometry(QRect(0, -18, 509, 256))
+        self.scrollAreaWidgetContents_6.setGeometry(QRect(0, 0, 394, 252))
         self.verticalLayout_10 = QVBoxLayout(self.scrollAreaWidgetContents_6)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.groupBox_2 = QGroupBox(self.scrollAreaWidgetContents_6)
@@ -475,7 +475,7 @@ class Ui_NemoMainWindow(object):
         self.scrollArea_4.setWidgetResizable(True)
         self.scrollAreaWidgetContents_4 = QWidget()
         self.scrollAreaWidgetContents_4.setObjectName(u"scrollAreaWidgetContents_4")
-        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 525, 151))
+        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 410, 151))
         self.verticalLayout_9 = QVBoxLayout(self.scrollAreaWidgetContents_4)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.label_20 = QLabel(self.scrollAreaWidgetContents_4)
@@ -502,9 +502,10 @@ class Ui_NemoMainWindow(object):
         self.doubleSpinBox_tk_c_min.setSizePolicy(sizePolicy3)
         self.doubleSpinBox_tk_c_min.setFont(font2)
         self.doubleSpinBox_tk_c_min.setDecimals(4)
-        self.doubleSpinBox_tk_c_min.setMinimum(-100.000000000000000)
+        self.doubleSpinBox_tk_c_min.setMinimum(-10000.000000000000000)
+        self.doubleSpinBox_tk_c_min.setMaximum(10000.000000000000000)
         self.doubleSpinBox_tk_c_min.setSingleStep(0.001000000000000)
-        self.doubleSpinBox_tk_c_min.setValue(-1.000000000000000)
+        self.doubleSpinBox_tk_c_min.setValue(-300.000000000000000)
 
         self.formLayout.setWidget(0, QFormLayout.FieldRole, self.doubleSpinBox_tk_c_min)
 
@@ -523,9 +524,10 @@ class Ui_NemoMainWindow(object):
         self.doubleSpinBox_tk_c_max.setSizePolicy(sizePolicy3)
         self.doubleSpinBox_tk_c_max.setFont(font2)
         self.doubleSpinBox_tk_c_max.setDecimals(4)
-        self.doubleSpinBox_tk_c_max.setMinimum(-100.000000000000000)
+        self.doubleSpinBox_tk_c_max.setMinimum(-10000.000000000000000)
+        self.doubleSpinBox_tk_c_max.setMaximum(10000.000000000000000)
         self.doubleSpinBox_tk_c_max.setSingleStep(0.001000000000000)
-        self.doubleSpinBox_tk_c_max.setValue(1.000000000000000)
+        self.doubleSpinBox_tk_c_max.setValue(300.000000000000000)
 
         self.formLayout.setWidget(1, QFormLayout.FieldRole, self.doubleSpinBox_tk_c_max)
 
@@ -554,7 +556,7 @@ class Ui_NemoMainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 508, 234))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 393, 228))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
         self.label_18 = QLabel(self.scrollAreaWidgetContents)
@@ -703,6 +705,56 @@ class Ui_NemoMainWindow(object):
         self.tabWidget_tk.addTab(self.tab_tk_data, "")
         self.tab_tk_tools = QWidget()
         self.tab_tk_tools.setObjectName(u"tab_tk_tools")
+        self.horizontalLayout_9 = QHBoxLayout(self.tab_tk_tools)
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.scrollArea_3 = QScrollArea(self.tab_tk_tools)
+        self.scrollArea_3.setObjectName(u"scrollArea_3")
+        self.scrollArea_3.setWidgetResizable(True)
+        self.scrollAreaWidgetContents_3 = QWidget()
+        self.scrollAreaWidgetContents_3.setObjectName(u"scrollAreaWidgetContents_3")
+        self.scrollAreaWidgetContents_3.setGeometry(QRect(0, 0, 410, 151))
+        self.verticalLayout_6 = QVBoxLayout(self.scrollAreaWidgetContents_3)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.pushButton_box_select = QPushButton(self.scrollAreaWidgetContents_3)
+        self.pushButton_box_select.setObjectName(u"pushButton_box_select")
+        self.pushButton_box_select.setCheckable(True)
+        self.pushButton_box_select.setChecked(False)
+
+        self.horizontalLayout_6.addWidget(self.pushButton_box_select)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_6.addItem(self.horizontalSpacer_2)
+
+
+        self.verticalLayout_6.addLayout(self.horizontalLayout_6)
+
+        self.horizontalLayout_10 = QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
+        self.pushButton_print_tk = QPushButton(self.scrollAreaWidgetContents_3)
+        self.pushButton_print_tk.setObjectName(u"pushButton_print_tk")
+        self.pushButton_print_tk.setCheckable(False)
+        self.pushButton_print_tk.setChecked(False)
+
+        self.horizontalLayout_10.addWidget(self.pushButton_print_tk)
+
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_10.addItem(self.horizontalSpacer_3)
+
+
+        self.verticalLayout_6.addLayout(self.horizontalLayout_10)
+
+        self.verticalSpacer_4 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout_6.addItem(self.verticalSpacer_4)
+
+        self.scrollArea_3.setWidget(self.scrollAreaWidgetContents_3)
+
+        self.horizontalLayout_9.addWidget(self.scrollArea_3)
+
         self.tabWidget_tk.addTab(self.tab_tk_tools, "")
 
         self.verticalLayout_4.addWidget(self.tabWidget_tk)
@@ -716,7 +768,7 @@ class Ui_NemoMainWindow(object):
         NemoMainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(NemoMainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1398, 22))
+        self.menubar.setGeometry(QRect(0, 0, 1168, 22))
         NemoMainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(NemoMainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -782,6 +834,8 @@ class Ui_NemoMainWindow(object):
         self.doubleSpinBox_tk_t_0_max.setSuffix(QCoreApplication.translate("NemoMainWindow", u"\u03bcs", None))
         self.label_4.setText(QCoreApplication.translate("NemoMainWindow", u"n t\u2080s :", None))
         self.tabWidget_tk.setTabText(self.tabWidget_tk.indexOf(self.tab_tk_data), QCoreApplication.translate("NemoMainWindow", u"Data", None))
+        self.pushButton_box_select.setText(QCoreApplication.translate("NemoMainWindow", u"Area zoom", None))
+        self.pushButton_print_tk.setText(QCoreApplication.translate("NemoMainWindow", u"Print", None))
         self.tabWidget_tk.setTabText(self.tabWidget_tk.indexOf(self.tab_tk_tools), QCoreApplication.translate("NemoMainWindow", u"Tools", None))
     # retranslateUi
 

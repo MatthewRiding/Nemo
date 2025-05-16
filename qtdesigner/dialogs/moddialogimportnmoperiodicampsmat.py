@@ -21,6 +21,11 @@ class DialogImportNMOPeriodicMat(QDialog, Ui_dialog_nmo_mat):
         # Display folder icon on browse button:
         self.push_button_browse_for_file.setIcon(QIcon('graphicfiles/browse_folder.png'))
 
+        # Set defaults:
+        self.doubleSpinBox_time_min_us.setValue(-0.25)
+        self.doubleSpinBox_time_max_us.setValue(4.745)
+        self.doubleSpinBox_pitch_mm.setValue(0.05)
+
         # Wire signals to slots:
         self.push_button_browse_for_file.clicked.connect(self.browse_for_file)
         self.buttonBox.accepted.connect(self.accept_button_clicked)

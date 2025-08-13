@@ -11,6 +11,7 @@ from functions.modextracttkcontributions import extract_tk_contributions
 from functions.modcomputethyp import compute_t_hyp_us
 from classdefs.modboundaryline import BoundaryLine
 from classdefs.modtkzoomwidget import TKZoomWidget
+from classdefs.modpcvviewer import PCVViewer
 from qtdesigner.dialogs.PrettyPrint.moddialogprettyprint import DialogPrettyPrint
 
 
@@ -33,7 +34,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.spectrum_contributions_3d = None
         self.query_times_by_a_scan_3d = None
         self.n_samples = None
-        self.n_a_scans = None
+        self.n_a_scans = 2
         self.x_max_mm = None
         self.boundary_line_x_min = None
         self.boundary_i_min = 0
@@ -41,12 +42,15 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.boundary_i_max = None
         self.rect_selector_tk = None
         self.tk_zoom_widget = None
+        self.pcv_viewer_widget = None
+        self.tuple_v_t_0_selected = None
 
         # Set window title:
         self.setWindowTitle('Nemo')
 
         # Create menus:
         self.menu_file = self.menubar.addMenu('File')
+        self.menu_windows = self.menubar.addMenu('Windows')
 
         # Create sub-menus:
         self.menu_open = self.menu_file.addMenu('Open')
@@ -57,9 +61,14 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         action_open_nmo_periodic_mat.setStatusTip(
             'Import the amplitude data from an NMO B-scan from a .mat file (2D A-scan array format).')
         action_open_nmo_periodic_mat.triggered.connect(self.open_nmo_periodic_mat)
+        # Action to toggle the pixel contributions vector viewer window:
+        self.action_toggle_pcv_viewer = QAction('PCV viewer', parent=self)
+        self.action_toggle_pcv_viewer.setCheckable(True)
+        self.action_toggle_pcv_viewer.triggered.connect(self.toggle_pcv_viewer)
 
         # Add actions to menus:
         self.menu_open.addAction(action_open_nmo_periodic_mat)
+        self.menu_windows.addAction(self.action_toggle_pcv_viewer)
 
         # Wire signals to slots:
         # Qt signals:
@@ -79,6 +88,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.checkBox_x_max.checkStateChanged.connect(self.checkbox_x_max_toggled)
         self.pushButton_box_select.clicked.connect(self.tk_box_select_button_clicked)
         self.pushButton_print_tk.clicked.connect(self.print_tk_clicked)
+        self.tk_spectrum_widget.pixel_clicked.connect(self.tk_pixel_clicked)
         # Matplotlib signals:
         self.tk_spectrum_widget.mpl_canvas.fig.canvas.mpl_connect('motion_notify_event', self.tk_hover)
 
@@ -173,6 +183,10 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
             # Display the data set name in the label at the top of the screen:
             if name:
                 self.label_data_set_name.setText(name)
+
+            # Update the PCV plot widget, if open:
+            if self.pcv_viewer_widget:
+                self.pcv_viewer_widget.update_n_a_scans(self.n_a_scans)
 
     def request_file_import_params(self):
         # Open a dialog to request the file import parameters:
@@ -502,3 +516,47 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
                                                 colorbar_string='Sum (mV)',
                                                 title_string=title_string)
         dialog_pretty_print.exec()
+
+    def toggle_pcv_viewer(self):
+        if self.pcv_viewer_widget:
+            # The widget already exists.  Close it:
+            self.pcv_viewer_widget.close()
+            # Set Python reference to None:
+            self.pcv_viewer_widget = None
+        else:
+            # The widget is not already open.
+            # If a pixel in the TK spectrum is selected, extract the PCV:
+            if self.tuple_v_t_0_selected:
+                pcv_nm = self.extract_pcv(self.tuple_v_t_0_selected)
+            else:
+                pcv_nm = None
+            # Create a new PCVViewer instance:
+            self.pcv_viewer_widget = PCVViewer(self.n_a_scans, self.doubleSpinBox_nmo_c_min.value(),
+                                               self.doubleSpinBox_nmo_c_max.value(), pcv_nm)
+            # Wire signals to slots:
+            self.pcv_viewer_widget.pcv_viewer_closed.connect(self.slot_pcv_viewer_closed)
+            # Open the window:
+            self.pcv_viewer_widget.show()
+
+    def slot_pcv_viewer_closed(self):
+        self.action_toggle_pcv_viewer.setChecked(False)
+        # Set Python reference to None:
+        self.pcv_viewer_widget = None
+
+    def tk_pixel_clicked(self, tuple_v_t_0):
+        # Store selected (v_mpers, t_0_us) tuple:
+        self.tuple_v_t_0_selected = tuple_v_t_0
+        # Extract associated PCV:
+        pcv_nm = self.extract_pcv(self.tuple_v_t_0_selected)
+
+        if self.pcv_viewer_widget:
+            self.pcv_viewer_widget.update_pcv_values(pcv_nm)
+
+    def extract_pcv(self, tuple_c_t_0):
+        # Sample the B-scan via interpolation at the t_hyp times for each A-scan:
+        c_mpers = tuple_c_t_0[0]
+        t_0_us = tuple_c_t_0[1]
+        spectrum_contributions_3d, _ = extract_tk_contributions(self.b_scan_amps_modified_mv, self.t_vector_us,
+                                                                self.x_vector_mm, [c_mpers], [t_0_us])
+        pcv_nm = np.squeeze(spectrum_contributions_3d)
+        return pcv_nm

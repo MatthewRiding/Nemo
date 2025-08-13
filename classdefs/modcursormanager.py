@@ -2,6 +2,12 @@ from matplotlib.backend_tools import Cursors
 
 
 class CursorManager:
+    """
+    Manages the appearance of the cursor (standard triangular arrow, horizontal resize double-headed arrow etc.) as a
+    function of the artists it hovers over on a given matplotlib canvas.
+    I am using it to transform the cursor from standard triangular arrow into horizontal resize double-headed arrow when
+    hovering over the x_max control bar on the B-scan view canvas.
+    """
     def __init__(self, mpl_canvas):
         self.mpl_canvas = mpl_canvas
         self.list_of_artists = []

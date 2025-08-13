@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QSizePolicy
+from PySide6.QtCore import Signal
 import colorcet as cc
 import numpy as np
 from matplotlib.transforms import blended_transform_factory
@@ -8,6 +9,9 @@ from classdefs.modblitmanager import BlitManager
 
 
 class TKSpectrumBase(QWidget):
+    # Define custom signals:
+    pixel_clicked = Signal(tuple)
+
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -41,8 +45,32 @@ class TKSpectrumBase(QWidget):
 
         self.axes_image = empty_image_plot()
 
+        # A plot with a marker to mark the selected [v, t_0] point:
+        self.marker_selected, = self.mpl_canvas.ax.plot([], [], visible=False, marker='x',
+                                                        markeredgecolor=[1, 1, 1, 0.8])
+
         # Store the v_vector_mpers as an instance variable for use in computing the iso-b line:
         self.v_vector_mpers = None
+
+        # Implement matplotlib figure event handling to enable pixel selection:
+        # Connect to the 'button_press_event':
+        self.mpl_canvas.fig.canvas.mpl_connect('button_press_event', self.button_press_response)
+
+        self.blit_manager = None
+
+    def button_press_response(self, event):
+        # Plot the white caret marker at the location that has been clicked:
+        self.marker_selected.set_data([event.xdata], [event.ydata])
+        # If invisible, make visible:
+        if not self.marker_selected.get_visible():
+            self.marker_selected.set_visible(True)
+        # Blit changes:
+        self.blit_manager.blit_all_animated_artists()
+
+        # Emit the 'pixel_clicked' event to prompt the B-scan and iso-t widgets to display the associated delay law:
+        c_mpers = event.xdata
+        t_0_us = event.ydata
+        self.pixel_clicked.emit((c_mpers, t_0_us))
 
 
 class TKSpectrumWidget(TKSpectrumBase):
@@ -90,19 +118,12 @@ class TKSpectrumWidget(TKSpectrumBase):
                                                       visible=False, va='bottom', ha='left',
                                                       transform=trans_x_norm_y_data)
 
-        # A plot with a marker to mark the selected [v,b] point:
-        # self.marker_selected_vb, = self.mpl_canvas.ax.plot([], [], visible=False, marker='+',
-        #                                                    markeredgecolor=[1, 1, 1, 0.8])
-
-        # Implement matplotlib figure event handling to enable pixel selection:
-        # Connect the method 'motion_hover' to the 'motion_notify_event' in the MatPlotLib event handler:
-        # self.mpl_canvas.fig.canvas.mpl_connect('motion_notify_event', self.motion_hover)
-
         # Create a BlitManager instance to manage blitting:
         self.blit_manager = BlitManager(self.mpl_canvas, [self.line_iso_b,
                                                           self.text_iso_b,
                                                           self.text_v_hover,
-                                                          self.text_t_0_hover])
+                                                          self.text_t_0_hover,
+                                                          self.marker_selected])
 
     def new_v_vector_mpers(self, v_vector_mpers):
         self.v_vector_mpers = v_vector_mpers

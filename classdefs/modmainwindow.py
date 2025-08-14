@@ -22,8 +22,8 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.setupUi(self)
 
         # Instance variables:
-        self.b_scan_amplitudes_raw_mv = None
-        self.b_scan_amps_modified_mv = None
+        self.b_scan_amplitudes_raw_nm = None
+        self.b_scan_amps_modified_nm = None
         self.t_min_us_scope = None
         self.t_max_us_scope = None
         self.pitch_mm = None
@@ -43,7 +43,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.rect_selector_tk = None
         self.tk_zoom_widget = None
         self.pcv_viewer_widget = None
-        self.tuple_v_t_0_selected = None
+        self.tuple_v_t_0_clicked = None
 
         # Set window title:
         self.setWindowTitle('Nemo')
@@ -99,11 +99,11 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         # Proceed differently based on the value of 'provided':
         if provided:
             # The user has provided file import parameters and wishes to continue with the data import:
-            # Import the amplitude data array:
-            self.b_scan_amplitudes_raw_mv = load_nmo_periodic_amps_from_mat_file(file_path) * 1000
+            # Import the amplitude data array & convert from Quartet Volts to nanometres by multiplying by 10:
+            self.b_scan_amplitudes_raw_nm = load_nmo_periodic_amps_from_mat_file(file_path) * 10
 
             # Generate the time vector using the scope time limits provided:
-            self.n_samples, self.n_a_scans = np.shape(self.b_scan_amplitudes_raw_mv)
+            self.n_samples, self.n_a_scans = np.shape(self.b_scan_amplitudes_raw_nm)
             self.t_vector_us = generate_time_vector_us(self.t_min_us_scope, self.t_max_us_scope, self.n_samples)
             # Generate x vector:
             self.x_max_mm = (self.n_a_scans - 1) * self.pitch_mm
@@ -111,15 +111,21 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
             # Set x boundaries to contain all data:
             self.boundary_i_max = self.n_a_scans
 
-            # Update everything to reflect the new fmclp data set:
+            # Update everything to reflect the new NMO B-scan data set:
             # No modifiers applied yet:
-            self.b_scan_amps_modified_mv = self.b_scan_amplitudes_raw_mv
+            self.b_scan_amps_modified_nm = self.b_scan_amplitudes_raw_nm
             # Display the NMO B-scan:
-            self.nmo_b_scan_widget.new_amplitude_array(self.b_scan_amps_modified_mv)
+            self.nmo_b_scan_widget.new_amplitude_array(self.b_scan_amps_modified_nm)
             # Set c lims for NMO B-scan plot:
-            self.nmo_b_scan_widget.axes_image.set_clim(vmin=-10, vmax=10)
-            self.doubleSpinBox_nmo_c_min.setValue(-10)
-            self.doubleSpinBox_nmo_c_max.setValue(10)
+            vmin_default_nm = -0.1
+            vmax_default_nm = 0.1
+            self.nmo_b_scan_widget.axes_image.set_clim(vmin=vmin_default_nm, vmax=vmax_default_nm)
+            self.doubleSpinBox_nmo_c_min.blockSignals(True)
+            self.doubleSpinBox_nmo_c_min.setValue(vmin_default_nm)
+            self.doubleSpinBox_nmo_c_min.blockSignals(False)
+            self.doubleSpinBox_nmo_c_max.blockSignals(True)
+            self.doubleSpinBox_nmo_c_max.setValue(vmax_default_nm)
+            self.doubleSpinBox_nmo_c_max.blockSignals(False)
             # Set extent:
             self.nmo_b_scan_widget.axes_image.set_extent((0,
                                                           self.x_max_mm,
@@ -132,7 +138,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
 
             # Set x data for interactive lines:
             self.nmo_b_scan_widget.hyperbola_hover.set_xdata(self.x_vector_mm)
-            #self.nmo_b_scan_widget.hyperbola_click.set_xdata(self.x_vector_mm)
+            self.nmo_b_scan_widget.hyperbola_click.set_xdata(self.x_vector_mm)
 
             # Update plot variable input widgets based on dataset limits:
             # NMO plot variables:
@@ -250,7 +256,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
 
     def extract_tk_contributions(self):
         self.spectrum_contributions_3d, self.query_times_by_a_scan_3d = extract_tk_contributions(
-            self.b_scan_amps_modified_mv, self.t_vector_us, self.x_vector_mm, self.v_vector_mpers, self.t_0_vector_us)
+            self.b_scan_amps_modified_nm, self.t_vector_us, self.x_vector_mm, self.v_vector_mpers, self.t_0_vector_us)
 
     def mask_tk_contributions(self):
         if self.groupBox_box_mask.isChecked():
@@ -299,7 +305,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.nmo_b_scan_widget.hyperbola_hover.set_ydata(t_hyp_us)
 
     def tk_hover(self, event):
-        if self.b_scan_amplitudes_raw_mv is None:
+        if self.b_scan_amplitudes_raw_nm is None:
             # No dataset loaded.  Take no action.
             return
         elif not event.inaxes:
@@ -321,8 +327,10 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
             # Mouse is in TK data axes.
             v_hover_mpers = event.xdata
             t_0_hover_us = event.ydata
+            # Compute t values for this hyperbola:
+            t_hyp_us = compute_t_hyp_us(self.x_vector_mm, v_hover_mpers, t_0_hover_us)
             # Draw hyperbola on NMO B-scan for hovered [v,b] point:
-            self.update_nmo_b_scan_hyp_hover(v_hover_mpers, t_0_hover_us)
+            self.nmo_b_scan_widget.update_hyp_hover(t_hyp_us)
 
             # Update hover annotations on TK plot:
             self.tk_spectrum_widget.update_hover_annotations(v_hover_mpers, t_0_hover_us)
@@ -330,7 +338,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
             # Check if hyp hover is visible:
             if not self.nmo_b_scan_widget.hyperbola_hover.get_visible():
                 # Hyp hover is invisible.
-                # Make all hover annotations visible:
+                # Make all hover annotations visible on both TK and NMO widgets:
                 self.nmo_b_scan_widget.hyperbola_hover.set_visible(True)
                 self.tk_spectrum_widget.set_hover_annotations_visible(True)
 
@@ -466,7 +474,7 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         # Is there a TKZoom widget open?
         if not self.tk_zoom_widget:
             # Instantiate a new TK zoom widget:
-            self.tk_zoom_widget = TKZoomWidget(self.b_scan_amps_modified_mv, self.x_vector_mm, self.t_vector_us)
+            self.tk_zoom_widget = TKZoomWidget(self.b_scan_amps_modified_nm, self.x_vector_mm, self.t_vector_us)
             self.tk_zoom_widget.tk_zoom_closed.connect(self.tk_zoom_widget_closed_slot)
             self.tk_zoom_widget.tk_zoom_hyperbola_found.connect(self.tk_zoom_hyp_found)
             self.tk_zoom_widget.show()
@@ -526,8 +534,8 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         else:
             # The widget is not already open.
             # If a pixel in the TK spectrum is selected, extract the PCV:
-            if self.tuple_v_t_0_selected:
-                pcv_nm = self.extract_pcv(self.tuple_v_t_0_selected)
+            if self.tuple_v_t_0_clicked:
+                pcv_nm = self.extract_pcv(self.tuple_v_t_0_clicked)
             else:
                 pcv_nm = None
             # Create a new PCVViewer instance:
@@ -544,19 +552,31 @@ class NemoMainWindow(QMainWindow, Ui_NemoMainWindow):
         self.pcv_viewer_widget = None
 
     def tk_pixel_clicked(self, tuple_v_t_0):
-        # Store selected (v_mpers, t_0_us) tuple:
-        self.tuple_v_t_0_selected = tuple_v_t_0
-        # Extract associated PCV:
-        pcv_nm = self.extract_pcv(self.tuple_v_t_0_selected)
+        # Store clicked (v_mpers, t_0_us) tuple:
+        self.tuple_v_t_0_clicked = tuple_v_t_0
 
-        if self.pcv_viewer_widget:
-            self.pcv_viewer_widget.update_pcv_values(pcv_nm)
+        if tuple_v_t_0:
+            # Tuple is not None.
+            # Update clicked hyperbola on NMO B-scan plot:
+            t_hyp_clicked_us = compute_t_hyp_us(self.x_vector_mm, tuple_v_t_0[0], tuple_v_t_0[1])
+            self.nmo_b_scan_widget.update_hyp_click(t_hyp_clicked_us)
+
+            if self.pcv_viewer_widget:
+                # Extract associated PCV:
+                pcv_nm = self.extract_pcv(self.tuple_v_t_0_clicked)
+                self.pcv_viewer_widget.update_pcv_values(pcv_nm)
+        else:
+            # Tuple is None:
+            # Prompt NMO B-scan view widget to make click hyperbola invisible:
+            self.nmo_b_scan_widget.hyperbola_click.set_visible(False)
+        # Blit changes:
+        self.nmo_b_scan_widget.blit_manager.blit_all_animated_artists()
 
     def extract_pcv(self, tuple_c_t_0):
         # Sample the B-scan via interpolation at the t_hyp times for each A-scan:
         c_mpers = tuple_c_t_0[0]
         t_0_us = tuple_c_t_0[1]
-        spectrum_contributions_3d, _ = extract_tk_contributions(self.b_scan_amps_modified_mv, self.t_vector_us,
+        spectrum_contributions_3d, _ = extract_tk_contributions(self.b_scan_amps_modified_nm, self.t_vector_us,
                                                                 self.x_vector_mm, [c_mpers], [t_0_us])
         pcv_nm = np.squeeze(spectrum_contributions_3d)
         return pcv_nm

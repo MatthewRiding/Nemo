@@ -1,10 +1,11 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from PySide6.QtCore import Signal, Qt
 import numpy as np
 import colorcet as cc
 
 from classdefs.modqtmatplotlib import MplCanvas
 from classdefs.modblitmanager import BlitManager
+from classdefs.modmytoolbar import MyToolBar
 
 
 class PCVViewer(QWidget):
@@ -32,10 +33,20 @@ class PCVViewer(QWidget):
         # Set window flags:
         self.setWindowFlag(Qt.WindowStaysOnTopHint)
 
-        # Create an MplCanvas instance & set it into a layout:
+        # Create an MplCanvas instance:
         self.mpl_canvas = MplCanvas()
+
+        # Create a matplotlib toolbar to enable zooming:
+        self.toolbar = MyToolBar(self.mpl_canvas, self)
+
+        # Create a button to auto-scale the y-axis:
+        self.button_autoscale_y = QPushButton('Autoscale y axis')
+
+        # Stack the widgets into a vertical layout:
         self.layout = QVBoxLayout()
+        self.layout.addWidget(self.toolbar)
         self.layout.addWidget(self.mpl_canvas)
+        self.layout.addWidget(self.button_autoscale_y)
         self.setLayout(self.layout)
 
         # Customise the default 2D axis instance:
@@ -73,10 +84,13 @@ class PCVViewer(QWidget):
         self.mpl_canvas.ax.set_xlim(0, n_a_scans - 1)
 
         # Set widget size:
-        self.resize(600, 300)
+        self.resize(600, 600)
 
         # Create a BlitManager instance to manage blitting:
         self.blit_manager = BlitManager(self.mpl_canvas, [self.scatter_pcv])
+
+        # Wire signals to slot:
+        self.button_autoscale_y.pressed.connect(self.auto_scale_y)
 
     def update_pcv_values(self, pcv_nm):
         # Transmit the new pixel contributions vector as the y-data for the 2d line plot:
@@ -104,3 +118,13 @@ class PCVViewer(QWidget):
     def closeEvent(self, event):
         self.pcv_viewer_closed.emit()
         super().closeEvent(event)
+
+    def auto_scale_y(self):
+        # Get max of absolute value of PCV displacements:
+        offsets = self.scatter_pcv.get_offsets()
+        max_abs_nm = np.max(np.abs(offsets[:, 1]))
+        # Set max abs as positive and negative y-axis limits:
+        self.mpl_canvas.ax.set_ylim(-max_abs_nm, max_abs_nm)
+        # Re-draw canvas:
+        self.mpl_canvas.draw()
+

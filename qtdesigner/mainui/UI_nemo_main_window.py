@@ -123,7 +123,7 @@ class Ui_NemoMainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAreaWidgetContents_2 = QWidget()
         self.scrollAreaWidgetContents_2.setObjectName(u"scrollAreaWidgetContents_2")
-        self.scrollAreaWidgetContents_2.setGeometry(QRect(0, 0, 394, 174))
+        self.scrollAreaWidgetContents_2.setGeometry(QRect(0, 0, 394, 178))
         self.verticalLayout_7 = QVBoxLayout(self.scrollAreaWidgetContents_2)
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.label_21 = QLabel(self.scrollAreaWidgetContents_2)
@@ -156,10 +156,11 @@ class Ui_NemoMainWindow(object):
         sizePolicy3.setHeightForWidth(self.doubleSpinBox_nmo_c_min.sizePolicy().hasHeightForWidth())
         self.doubleSpinBox_nmo_c_min.setSizePolicy(sizePolicy3)
         self.doubleSpinBox_nmo_c_min.setFont(font2)
-        self.doubleSpinBox_nmo_c_min.setMinimum(-10000.000000000000000)
-        self.doubleSpinBox_nmo_c_min.setMaximum(10000.000000000000000)
-        self.doubleSpinBox_nmo_c_min.setSingleStep(0.100000000000000)
-        self.doubleSpinBox_nmo_c_min.setValue(-10.000000000000000)
+        self.doubleSpinBox_nmo_c_min.setDecimals(4)
+        self.doubleSpinBox_nmo_c_min.setMinimum(-1000.000000000000000)
+        self.doubleSpinBox_nmo_c_min.setMaximum(1000.000000000000000)
+        self.doubleSpinBox_nmo_c_min.setSingleStep(0.010000000000000)
+        self.doubleSpinBox_nmo_c_min.setValue(-0.100000000000000)
 
         self.formLayout_5.setWidget(0, QFormLayout.FieldRole, self.doubleSpinBox_nmo_c_min)
 
@@ -177,10 +178,11 @@ class Ui_NemoMainWindow(object):
         sizePolicy3.setHeightForWidth(self.doubleSpinBox_nmo_c_max.sizePolicy().hasHeightForWidth())
         self.doubleSpinBox_nmo_c_max.setSizePolicy(sizePolicy3)
         self.doubleSpinBox_nmo_c_max.setFont(font2)
-        self.doubleSpinBox_nmo_c_max.setMinimum(-10000.000000000000000)
-        self.doubleSpinBox_nmo_c_max.setMaximum(10000.000000000000000)
-        self.doubleSpinBox_nmo_c_max.setSingleStep(0.100000000000000)
-        self.doubleSpinBox_nmo_c_max.setValue(10.000000000000000)
+        self.doubleSpinBox_nmo_c_max.setDecimals(4)
+        self.doubleSpinBox_nmo_c_max.setMinimum(-1000.000000000000000)
+        self.doubleSpinBox_nmo_c_max.setMaximum(1000.000000000000000)
+        self.doubleSpinBox_nmo_c_max.setSingleStep(0.010000000000000)
+        self.doubleSpinBox_nmo_c_max.setValue(0.100000000000000)
 
         self.formLayout_5.setWidget(1, QFormLayout.FieldRole, self.doubleSpinBox_nmo_c_max)
 
@@ -316,7 +318,7 @@ class Ui_NemoMainWindow(object):
         self.scrollArea_6.setWidgetResizable(True)
         self.scrollAreaWidgetContents_6 = QWidget()
         self.scrollAreaWidgetContents_6.setObjectName(u"scrollAreaWidgetContents_6")
-        self.scrollAreaWidgetContents_6.setGeometry(QRect(0, 0, 394, 252))
+        self.scrollAreaWidgetContents_6.setGeometry(QRect(0, 0, 394, 256))
         self.verticalLayout_10 = QVBoxLayout(self.scrollAreaWidgetContents_6)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.groupBox_2 = QGroupBox(self.scrollAreaWidgetContents_6)
@@ -505,7 +507,7 @@ class Ui_NemoMainWindow(object):
         self.doubleSpinBox_tk_c_min.setMinimum(-10000.000000000000000)
         self.doubleSpinBox_tk_c_min.setMaximum(10000.000000000000000)
         self.doubleSpinBox_tk_c_min.setSingleStep(0.001000000000000)
-        self.doubleSpinBox_tk_c_min.setValue(-300.000000000000000)
+        self.doubleSpinBox_tk_c_min.setValue(-3.000000000000000)
 
         self.formLayout.setWidget(0, QFormLayout.FieldRole, self.doubleSpinBox_tk_c_min)
 
@@ -527,7 +529,7 @@ class Ui_NemoMainWindow(object):
         self.doubleSpinBox_tk_c_max.setMinimum(-10000.000000000000000)
         self.doubleSpinBox_tk_c_max.setMaximum(10000.000000000000000)
         self.doubleSpinBox_tk_c_max.setSingleStep(0.001000000000000)
-        self.doubleSpinBox_tk_c_max.setValue(300.000000000000000)
+        self.doubleSpinBox_tk_c_max.setValue(3.000000000000000)
 
         self.formLayout.setWidget(1, QFormLayout.FieldRole, self.doubleSpinBox_tk_c_max)
 
@@ -556,7 +558,7 @@ class Ui_NemoMainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 393, 228))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 393, 234))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
         self.label_18 = QLabel(self.scrollAreaWidgetContents)

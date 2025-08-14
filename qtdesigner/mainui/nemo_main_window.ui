@@ -164,7 +164,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>394</width>
-                 <height>174</height>
+                 <height>178</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -225,17 +225,20 @@
                     <property name="suffix">
                      <string>mV</string>
                     </property>
+                    <property name="decimals">
+                     <number>4</number>
+                    </property>
                     <property name="minimum">
-                     <double>-10000.000000000000000</double>
+                     <double>-1000.000000000000000</double>
                     </property>
                     <property name="maximum">
-                     <double>10000.000000000000000</double>
+                     <double>1000.000000000000000</double>
                     </property>
                     <property name="singleStep">
-                     <double>0.100000000000000</double>
+                     <double>0.010000000000000</double>
                     </property>
                     <property name="value">
-                     <double>-10.000000000000000</double>
+                     <double>-0.100000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -279,17 +282,20 @@
                     <property name="suffix">
                      <string>mV</string>
                     </property>
+                    <property name="decimals">
+                     <number>4</number>
+                    </property>
                     <property name="minimum">
-                     <double>-10000.000000000000000</double>
+                     <double>-1000.000000000000000</double>
                     </property>
                     <property name="maximum">
-                     <double>10000.000000000000000</double>
+                     <double>1000.000000000000000</double>
                     </property>
                     <property name="singleStep">
-                     <double>0.100000000000000</double>
+                     <double>0.010000000000000</double>
                     </property>
                     <property name="value">
-                     <double>10.000000000000000</double>
+                     <double>0.100000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -555,7 +561,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>394</width>
-                 <height>252</height>
+                 <height>256</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -954,7 +960,7 @@
                      <double>0.001000000000000</double>
                     </property>
                     <property name="value">
-                     <double>-300.000000000000000</double>
+                     <double>-3.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -1008,7 +1014,7 @@
                      <double>0.001000000000000</double>
                     </property>
                     <property name="value">
-                     <double>300.000000000000000</double>
+                     <double>3.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -1061,7 +1067,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>393</width>
-                 <height>228</height>
+                 <height>234</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_8">

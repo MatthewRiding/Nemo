@@ -47,7 +47,7 @@ class TKSpectrumBase(QWidget):
 
         # A plot with a marker to mark the selected [v, t_0] point:
         self.marker_selected, = self.mpl_canvas.ax.plot([], [], visible=False, marker='x',
-                                                        markeredgecolor=[1, 1, 1, 0.8])
+                                                        markeredgecolor=[0, 1, 0, 0.8])
 
         # Store the v_vector_mpers as an instance variable for use in computing the iso-b line:
         self.v_vector_mpers = None
@@ -59,18 +59,31 @@ class TKSpectrumBase(QWidget):
         self.blit_manager = None
 
     def button_press_response(self, event):
-        # Plot the white caret marker at the location that has been clicked:
-        self.marker_selected.set_data([event.xdata], [event.ydata])
-        # If invisible, make visible:
-        if not self.marker_selected.get_visible():
-            self.marker_selected.set_visible(True)
+        # Implement different responses depending on whether the left or right mouse button was clicked:
+        if event.button == 1:
+            # Matplotlib MouseButton Enum, 1 = LEFT mouse button:
+            # Move the selected pixel marker to the location that has been clicked:
+            self.marker_selected.set_data([event.xdata], [event.ydata])
+            # If invisible, make visible:
+            if not self.marker_selected.get_visible():
+                self.marker_selected.set_visible(True)
+
+            # Get the selected values of wave speed (c) and normal incidence time (t_0):
+            tuple_c_t_0 = (event.xdata, event.ydata)
+
+        else:
+            # Either the right or middle mouse buttons were clicked.
+            # Make the marker invisible:
+            self.marker_selected.set_visible(False)
+            # Transmit None as the tuple in the 'pixel_clicked' signal:
+            tuple_c_t_0 = None
+
+        # Emit the 'pixel_clicked' event to prompt the B-scan and iso-t widgets to display the associated delay law
+        # (if left mouse button) or else make the selected hyperbola disappear:
+        self.pixel_clicked.emit(tuple_c_t_0)
+
         # Blit changes:
         self.blit_manager.blit_all_animated_artists()
-
-        # Emit the 'pixel_clicked' event to prompt the B-scan and iso-t widgets to display the associated delay law:
-        c_mpers = event.xdata
-        t_0_us = event.ydata
-        self.pixel_clicked.emit((c_mpers, t_0_us))
 
 
 class TKSpectrumWidget(TKSpectrumBase):

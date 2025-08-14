@@ -60,13 +60,16 @@ class NMOBScanWidget(QWidget):
 
         self.axes_image = empty_image_plot()
 
-        # Plot an invisible line that will be updated to display the hyperbola selected in the T-K spectrum plot:
-        self.hyperbola_hover, = self.mpl_canvas.ax.plot([], [], visible=False, color=[1, 1, 1, 1], linewidth=0.6,
-                                                        dashes=(5, 4))
-        # self.hyperbola_click, = self.mpl_canvas.ax.plot([], [], visible=False, color=[1, 1, 1, 1], linewidth=0.6)
+        # Create an invisible line plot that will be updated to display the hyperbola hovered over in the T-K spectrum
+        # plot:
+        hyp_style_dict = dict(linewidth=0.6, dashes=(5, 4))
+        self.hyperbola_hover, = self.mpl_canvas.ax.plot([], [], visible=False, color=[1, 1, 1, 1], **hyp_style_dict)
+        # Create another invisible line plot for the hyperbola clicked in the T-K spectrum plot:
+        self.hyperbola_click, = self.mpl_canvas.ax.plot([], [], visible=False, color=[0, 1, 0, 0.8], zorder=-1,
+                                                        **hyp_style_dict)
 
         # Create a BlitManager instance to manage blitting:
-        self.blit_manager = BlitManager(self.mpl_canvas, [self.hyperbola_hover])
+        self.blit_manager = BlitManager(self.mpl_canvas, [self.hyperbola_hover, self.hyperbola_click])
 
         # Create a CursorManager instance to manage cursor transformations:
         self.cursor_manager = CursorManager(self.mpl_canvas)
@@ -74,3 +77,12 @@ class NMOBScanWidget(QWidget):
     def new_amplitude_array(self, amplitudes_2d_array):
         # Set amplitudes as new data for imshow image:
         self.axes_image.set_data(amplitudes_2d_array)
+
+    def update_hyp_click(self, t_hyp_us):
+        self.hyperbola_click.set_ydata(t_hyp_us)
+        # If invisible, make visible:
+        if not self.hyperbola_click.get_visible():
+            self.hyperbola_click.set_visible(True)
+
+    def update_hyp_hover(self, t_hyp_us):
+        self.hyperbola_hover.set_ydata(t_hyp_us)
